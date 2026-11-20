@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/theme/app_theme.dart';
+import '../../../../core/widgets/ui.dart';
+import '../../../Panier/presentation/providers/cart_provider.dart';
+import '../../domain/entities/product.dart';
 import '../providers/products_provider.dart';
 
 class ProductsPage extends ConsumerStatefulWidget {
@@ -28,93 +32,260 @@ class _ProductsPageState extends ConsumerState<ProductsPage> {
     super.dispose();
   }
 
+  void _addToCart(Product p) {
+    final f = ref.read(cartControllerProvider.notifier).add(p);
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(content: Text(f?.message ?? '${p.name} ajouté au panier')),
+      );
+  }
+
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(productsControllerProvider);
     final controller = ref.read(productsControllerProvider.notifier);
 
-    Widget body;
+    final List<Widget> content;
     if (state.loading && state.items.isEmpty) {
-      body = const Center(child: CircularProgressIndicator());
-    } else if (state.error != null && state.items.isEmpty) {
-      body = Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(state.error!.message),
-            TextButton(
-              onPressed: controller.refresh,
-              child: const Text('Réessayer'),
-            ),
-          ],
+      content = const [
+        SliverFillRemaining(
+          hasScrollBody: false,
+          child: Center(child: CircularProgressIndicator()),
         ),
-      );
+      ];
+    } else if (state.error != null && state.items.isEmpty) {
+      content = [
+        SliverFillRemaining(
+          hasScrollBody: false,
+          child: EmptyState(
+            icon: Icons.wifi_off_rounded,
+            message: state.error!.message,
+            actionLabel: 'Réessayer',
+            onAction: controller.refresh,
+          ),
+        ),
+      ];
     } else if (state.items.isEmpty) {
-      body = const Center(child: Text('Aucun produit trouvé'));
+      content = const [
+        SliverFillRemaining(
+          hasScrollBody: false,
+          child: EmptyState(
+            icon: Icons.search_off_rounded,
+            message: 'Aucun produit trouvé',
+          ),
+        ),
+      ];
     } else {
       final showFooter =
           state.hasMore || state.loadingMore || state.error != null;
-      body = RefreshIndicator(
-        onRefresh: controller.refresh,
-        child: ListView.builder(
-          controller: _scroll,
-          itemCount: state.items.length + (showFooter ? 1 : 0),
-          itemBuilder: (_, i) {
-            if (i >= state.items.length) {
-              return Padding(
-                padding: const EdgeInsets.all(16),
-                child: Center(
-                  child: state.error != null
-                      ? TextButton(
-                          onPressed: controller.loadMore,
-                          child: const Text('Réessayer'),
-                        )
-                      : const CircularProgressIndicator(),
-                ),
-              );
-            }
-            final p = state.items[i];
-            return ListTile(
-              leading: SizedBox(
-                width: 48,
-                height: 48,
-                child: p.imageUrl == null
-                    ? const Icon(Icons.image_not_supported)
-                    : Image.network(
-                        p.imageUrl!,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, _, _) =>
-                            const Icon(Icons.broken_image),
-                      ),
-              ),
-              title: Text(p.name),
-              trailing: Text('${p.price.toStringAsFixed(0)} Ar'),
-            );
-          },
-        ),
-      );
-    }
-
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Catalogue'),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(56),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-            child: TextField(
-              onChanged: controller.search,
-              decoration: const InputDecoration(
-                hintText: 'Rechercher un produit',
-                prefixIcon: Icon(Icons.search),
-                border: OutlineInputBorder(),
-                isDense: true,
-              ),
+      content = [
+        SliverPadding(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+          sliver: SliverGrid.builder(
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              mainAxisSpacing: 20,
+              crossAxisSpacing: 16,
+              childAspectRatio: 0.62,
+            ),
+            itemCount: state.items.length,
+            itemBuilder: (_, i) => _ProductCard(
+              product: state.items[i],
+              onAdd: () => _addToCart(state.items[i]),
             ),
           ),
         ),
+        if (showFooter)
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Center(
+                child: state.error != null
+                    ? TextButton(
+                        onPressed: controller.loadMore,
+                        child: const Text('Réessayer'),
+                      )
+                    : const CircularProgressIndicator(),
+              ),
+            ),
+          ),
+        const SliverToBoxAdapter(child: SizedBox(height: 24)),
+      ];
+    }
+
+    return Scaffold(
+      body: SafeArea(
+        bottom: false,
+        child: RefreshIndicator(
+          onRefresh: controller.refresh,
+          child: CustomScrollView(
+            controller: _scroll,
+            physics: const AlwaysScrollableScrollPhysics(),
+            slivers: [
+              SliverToBoxAdapter(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: AppColors.background,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.05),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 24),
+                      const PageTitle('Catalogue'),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: ShadowField(
+                          child: TextField(
+                            onChanged: controller.search,
+                            decoration: InputDecoration(
+                              hintText: 'Rechercher un produit',
+                              prefixIcon: const Icon(
+                                Icons.search,
+                                color: AppColors.grey,
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(
+                                vertical: 14,
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(30),
+                                borderSide: BorderSide.none,
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(30),
+                                borderSide: BorderSide.none,
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(30),
+                                borderSide: const BorderSide(
+                                  color: AppColors.grey,
+                                  width: 0.5,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Icons.grid_view_rounded,
+                              size: 18,
+                              color: AppColors.dark,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              state.query.isEmpty
+                                  ? 'Tous les produits'
+                                  : 'Résultats pour « ${state.query} »',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: AppColors.dark,
+                              ),
+                            ),
+                            const Spacer(),
+                            Text(
+                              '${state.items.length} articles',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: AppColors.grey,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              ...content,
+            ],
+          ),
+        ),
       ),
-      body: body,
+    );
+  }
+}
+
+class _ProductCard extends StatelessWidget {
+  final Product product;
+  final VoidCallback onAdd;
+  const _ProductCard({required this.product, required this.onAdd});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Positioned.fill(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: ProductImage(product.imageUrl, iconSize: 40),
+                ),
+              ),
+              Positioned(
+                right: 0,
+                bottom: -18,
+                child: Material(
+                  color: AppColors.surface,
+                  shape: const CircleBorder(),
+                  elevation: 3,
+                  shadowColor: Colors.black26,
+                  child: InkWell(
+                    customBorder: const CircleBorder(),
+                    onTap: onAdd,
+                    child: const Padding(
+                      padding: EdgeInsets.all(9),
+                      child: Icon(
+                        Icons.add_shopping_cart_rounded,
+                        size: 18,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 10),
+        Padding(
+          padding: const EdgeInsets.only(right: 40),
+          child: Text(
+            product.name,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: AppColors.dark,
+              height: 1.2,
+            ),
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          '${product.price.toStringAsFixed(0)} Ar',
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: AppColors.dark,
+          ),
+        ),
+      ],
     );
   }
 }

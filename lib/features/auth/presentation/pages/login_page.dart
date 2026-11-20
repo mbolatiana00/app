@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../../core/theme/app_theme.dart';
+import '../../../../core/widgets/ui.dart';
 import '../providers/auth_provider.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
@@ -40,44 +43,37 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Text('Connexion',
-                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 24),
-              TextField(
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(16, 64, 16, 24),
+          children: [
+            Text('Connexion', style: Theme.of(context).textTheme.headlineLarge),
+            const SizedBox(height: 8),
+            const Text(
+              'Bienvenue ! Connectez-vous pour continuer vos achats.',
+              style: TextStyle(color: AppColors.grey),
+            ),
+            const SizedBox(height: 48),
+            ShadowField(
+              child: TextField(
                 controller: _email,
                 keyboardType: TextInputType.emailAddress,
                 decoration: const InputDecoration(labelText: 'Email'),
               ),
-              TextField(
+            ),
+            ShadowField(
+              child: TextField(
                 controller: _password,
                 obscureText: true,
                 decoration: const InputDecoration(labelText: 'Mot de passe'),
               ),
-              if (_error != null)
-                Padding(
-                  padding: const EdgeInsets.only(top: 12),
-                  child: Text(_error!, style: const TextStyle(color: Colors.red)),
-                ),
-              const SizedBox(height: 20),
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton(
-                  onPressed: _loading ? null : _submit,
-                  child: _loading
-                      ? const SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2))
-                      : const Text('Se connecter'),
-                ),
-              ),
-            ],
-          ),
+            ),
+            if (_error != null) ErrorText(_error!),
+            const SizedBox(height: 28),
+            FilledButton(
+              onPressed: _loading ? null : _submit,
+              child: ButtonLabel('Se connecter', loading: _loading),
+            ),
+          ],
         ),
       ),
     );
