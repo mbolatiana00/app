@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/error/failure.dart';
+import '../../../../core/widgets/ui.dart';
 import '../providers/orders_controller.dart';
 
 class CreateOrderPage extends ConsumerStatefulWidget {
@@ -35,42 +36,34 @@ class _CreateOrderPageState extends ConsumerState<CreateOrderPage> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Nouvelle commande')),
-      body: Padding(
+      body: ListView(
         padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            TextField(
+        children: [
+          ShadowField(
+            child: TextField(
               controller: _title,
               decoration: const InputDecoration(labelText: 'Titre'),
             ),
-            TextField(
+          ),
+          ShadowField(
+            child: TextField(
               controller: _total,
               keyboardType: TextInputType.number,
               decoration: const InputDecoration(labelText: 'Total (Ar)'),
             ),
-            if (state.hasError)
-              Padding(
-                padding: const EdgeInsets.only(top: 12),
-                child: Text(
-                  state.error is Failure
-                      ? (state.error as Failure).message
-                      : 'Erreur inconnue',
-                  style: const TextStyle(color: Colors.red),
-                ),
-              ),
-            const SizedBox(height: 16),
-            FilledButton(
-              onPressed: state.isLoading ? null : _submit,
-              child: state.isLoading
-                  ? const SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Text('Enregistrer'),
+          ),
+          if (state.hasError)
+            ErrorText(
+              state.error is Failure
+                  ? (state.error as Failure).message
+                  : 'Erreur inconnue',
             ),
-          ],
-        ),
+          const SizedBox(height: 20),
+          FilledButton(
+            onPressed: state.isLoading ? null : _submit,
+            child: ButtonLabel('Enregistrer', loading: state.isLoading),
+          ),
+        ],
       ),
     );
   }

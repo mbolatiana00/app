@@ -2,7 +2,10 @@ import 'package:app/features/orders/presentation/pages/order_confirmation_page.d
 import 'package:app/features/profile/presentation/providers/profile_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../../../core/error/failure.dart';
+import '../../../../core/theme/app_theme.dart';
+import '../../../../core/widgets/ui.dart';
 import '../../../Panier/presentation/providers/cart_provider.dart';
 import '../providers/checkout_provider.dart';
 
@@ -46,8 +49,7 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
     if (order != null && mounted) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(
-            builder: (_) => OrderConfirmationPage(order: order)),
+        MaterialPageRoute(builder: (_) => OrderConfirmationPage(order: order)),
       );
     }
   }
@@ -61,48 +63,91 @@ class _CheckoutPageState extends ConsumerState<CheckoutPage> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          for (final i in cart.items)
-            ListTile(
-              dense: true,
-              title: Text(i.product.name),
-              trailing: Text('${i.quantity} × ${i.product.price.toStringAsFixed(0)} Ar'),
+          const _SectionTitle('Récapitulatif'),
+          AppCard(
+            child: Column(
+              children: [
+                for (final i in cart.items)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 6),
+                    child: Row(
+                      children: [
+                        Expanded(child: Text(i.product.name)),
+                        Text(
+                          '${i.quantity} × ${i.product.price.toStringAsFixed(0)} Ar',
+                          style: const TextStyle(color: AppColors.grey),
+                        ),
+                      ],
+                    ),
+                  ),
+                const Divider(height: 24),
+                Row(
+                  children: [
+                    const Text(
+                      'Total :',
+                      style: TextStyle(color: AppColors.grey, fontSize: 16),
+                    ),
+                    const Spacer(),
+                    Text(
+                      '${cart.total.toStringAsFixed(0)} Ar',
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
-          const Divider(),
-          Text('Total : ${cart.total.toStringAsFixed(0)} Ar',
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 16),
-          TextField(
-            controller: _address,
-            decoration:
-                const InputDecoration(labelText: 'Adresse de livraison'),
           ),
-          TextField(
-            controller: _phone,
-            keyboardType: TextInputType.phone,
-            decoration: const InputDecoration(labelText: 'Téléphone'),
+          const SizedBox(height: 24),
+          const _SectionTitle('Livraison'),
+          ShadowField(
+            child: TextField(
+              controller: _address,
+              decoration: const InputDecoration(
+                labelText: 'Adresse de livraison',
+                prefixIcon: Icon(Icons.location_on_outlined),
+              ),
+            ),
+          ),
+          ShadowField(
+            child: TextField(
+              controller: _phone,
+              keyboardType: TextInputType.phone,
+              decoration: const InputDecoration(
+                labelText: 'Téléphone',
+                prefixIcon: Icon(Icons.phone_outlined),
+              ),
+            ),
           ),
           if (state.hasError)
-            Padding(
-              padding: const EdgeInsets.only(top: 12),
-              child: Text(
-                state.error is Failure
-                    ? (state.error as Failure).message
-                    : 'Erreur inconnue',
-                style: const TextStyle(color: Colors.red),
-              ),
+            ErrorText(
+              state.error is Failure
+                  ? (state.error as Failure).message
+                  : 'Erreur inconnue',
             ),
           const SizedBox(height: 20),
           FilledButton(
             onPressed: state.isLoading ? null : _submit,
-            child: state.isLoading
-                ? const SizedBox(
-                    width: 18,
-                    height: 18,
-                    child: CircularProgressIndicator(strokeWidth: 2))
-                : const Text('Confirmer la commande'),
+            child: ButtonLabel(
+              'Confirmer la commande',
+              loading: state.isLoading,
+            ),
           ),
         ],
       ),
     );
   }
+}
+
+class _SectionTitle extends StatelessWidget {
+  final String text;
+  const _SectionTitle(this.text);
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.only(bottom: 12),
+    child: Text(text, style: Theme.of(context).textTheme.titleMedium),
+  );
 }
