@@ -228,9 +228,12 @@ class _ProductCard extends StatelessWidget {
       children: [
         Expanded(
           child: Stack(
-            clipBehavior: Clip.none,
             children: [
-              Positioned.fill(
+              Positioned(
+                left: 0,
+                top: 0,
+                right: 0,
+                bottom: 18,
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(8),
                   child: ProductImage(product.imageUrl, iconSize: 40),
@@ -238,7 +241,7 @@ class _ProductCard extends StatelessWidget {
               ),
               Positioned(
                 right: 0,
-                bottom: -18,
+                bottom: 0,
                 child: Material(
                   color: AppColors.surface,
                   shape: const CircleBorder(),
@@ -261,7 +264,7 @@ class _ProductCard extends StatelessWidget {
             ],
           ),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 2),
         Padding(
           padding: const EdgeInsets.only(right: 40),
           child: Text(
