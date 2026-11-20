@@ -39,45 +39,48 @@ class _SplashPageState extends State<SplashPage>
     return Scaffold(
       backgroundColor: AppColors.primary,
       body: SafeArea(
-        child: Column(
-          children: [
-            const Spacer(),
-            FadeTransition(
-              opacity: _fade,
-              child: ScaleTransition(
-                scale: _scale,
-                child: const Column(
-                  children: [
-                    AppLogo(size: 104, inverted: true),
-                    SizedBox(height: 24),
-                    Text(
-                      'Ma boutique',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 34,
-                        fontWeight: FontWeight.w800,
+        child: SizedBox(
+          width: double.infinity,
+          child: Column(
+            children: [
+              const Spacer(),
+              FadeTransition(
+                opacity: _fade,
+                child: ScaleTransition(
+                  scale: _scale,
+                  child: const Column(
+                    children: [
+                      AppLogo(size: 104, inverted: true),
+                      SizedBox(height: 24),
+                      Text(
+                        'Ma boutique',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 34,
+                          fontWeight: FontWeight.w800,
+                        ),
                       ),
-                    ),
-                    SizedBox(height: 8),
-                    Text(
-                      'Vos achats, simplement.',
-                      style: TextStyle(color: Colors.white70, fontSize: 15),
-                    ),
-                  ],
+                      SizedBox(height: 8),
+                      Text(
+                        'Vos achats, simplement.',
+                        style: TextStyle(color: Colors.white70, fontSize: 15),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-            const Spacer(),
-            const SizedBox(
-              width: 28,
-              height: 28,
-              child: CircularProgressIndicator(
-                strokeWidth: 2.5,
-                color: Colors.white,
+              const Spacer(),
+              const SizedBox(
+                width: 28,
+                height: 28,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2.5,
+                  color: Colors.white,
+                ),
               ),
-            ),
-            const SizedBox(height: 48),
-          ],
+              const SizedBox(height: 48),
+            ],
+          ),
         ),
       ),
     );
