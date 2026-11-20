@@ -183,16 +183,20 @@ class _ProductsPageState extends ConsumerState<ProductsPage> {
                               color: AppColors.dark,
                             ),
                             const SizedBox(width: 8),
-                            Text(
-                              state.query.isEmpty
-                                  ? 'Tous les produits'
-                                  : 'Résultats pour « ${state.query} »',
-                              style: const TextStyle(
-                                fontSize: 12,
-                                color: AppColors.dark,
+                            Expanded(
+                              child: Text(
+                                state.query.isEmpty
+                                    ? 'Tous les produits'
+                                    : 'Résultats pour « ${state.query} »',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: AppColors.dark,
+                                ),
                               ),
                             ),
-                            const Spacer(),
+                            const SizedBox(width: 8),
                             Text(
                               '${state.items.length} articles',
                               style: const TextStyle(
