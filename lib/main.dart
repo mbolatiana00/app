@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'core/theme/app_theme.dart';
+import 'features/auth/presentation/pages/auth_gate.dart';
 import 'features/auth/presentation/providers/auth_provider.dart';
 import 'features/Panier/presentation/providers/cart_provider.dart';
 import 'features/orders/presentation/providers/orders_provider.dart';
@@ -59,7 +60,7 @@ class MyApp extends ConsumerWidget {
       },
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
-      home: const HomePage(),
+      home: const AuthGate(),
     );
   }
 }

@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/theme/app_theme.dart';
 import '../../../../core/widgets/ui.dart';
 import '../providers/auth_provider.dart';
+import '../widgets/auth_header.dart';
+import 'register_page.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
@@ -44,27 +45,28 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     return Scaffold(
       body: SafeArea(
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(16, 64, 16, 24),
+          padding: const EdgeInsets.fromLTRB(16, 48, 16, 24),
           children: [
-            Text('Connexion', style: Theme.of(context).textTheme.headlineLarge),
-            const SizedBox(height: 8),
-            const Text(
-              'Bienvenue ! Connectez-vous pour continuer vos achats.',
-              style: TextStyle(color: AppColors.grey),
+            const AuthHeader(
+              title: 'Connexion',
+              subtitle: 'Bienvenue ! Connectez-vous pour continuer vos achats.',
             ),
-            const SizedBox(height: 48),
             ShadowField(
               child: TextField(
                 controller: _email,
                 keyboardType: TextInputType.emailAddress,
-                decoration: const InputDecoration(labelText: 'Email'),
+                textInputAction: TextInputAction.next,
+                decoration: const InputDecoration(
+                  labelText: 'Email',
+                  prefixIcon: Icon(Icons.mail_outline_rounded),
+                ),
               ),
             ),
             ShadowField(
-              child: TextField(
+              child: PasswordField(
                 controller: _password,
-                obscureText: true,
-                decoration: const InputDecoration(labelText: 'Mot de passe'),
+                textInputAction: TextInputAction.done,
+                onSubmitted: (_) => _loading ? null : _submit(),
               ),
             ),
             if (_error != null) ErrorText(_error!),
@@ -72,6 +74,14 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             FilledButton(
               onPressed: _loading ? null : _submit,
               child: ButtonLabel('Se connecter', loading: _loading),
+            ),
+            const SizedBox(height: 16),
+            AuthSwitchLink(
+              question: 'Pas encore de compte ?',
+              action: 'S’inscrire',
+              onTap: () => Navigator.of(
+                context,
+              ).push(MaterialPageRoute(builder: (_) => const RegisterPage())),
             ),
           ],
         ),

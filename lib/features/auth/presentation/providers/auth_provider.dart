@@ -84,6 +84,19 @@ class AuthController extends Notifier<AuthState> {
     }
   }
 
+  /// Retourne null si l'inscription réussit, sinon l'erreur à afficher.
+  Future<Failure?> register(String name, String email, String password) async {
+    final result = await Register(_repo)
+        .call(name: name, email: email, password: password);
+    switch (result) {
+      case Ok(:final value):
+        state = Authenticated(value);
+        return null;
+      case Err(:final failure):
+        return failure;
+    }
+  }
+
   Future<void> logout() async {
     await Logout(_repo).call();
     state = const Unauthenticated();
